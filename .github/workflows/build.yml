@@ -1,0 +1,19 @@
+name: build-tgapi
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - run: sudo apt-get update && sudo apt-get install -y make git zlib1g-dev libssl-dev gperf cmake g++
+      - run: git clone --recursive https://github.com/tdlib/telegram-bot-api.git
+      - run: |
+          cd telegram-bot-api && mkdir build && cd build
+          cmake -DCMAKE_BUILD_TYPE=Release ..
+          cmake --build . --target install -j2
+          strip /usr/local/bin/telegram-bot-api
+          telegram-bot-api --version
+      - run: gh release create v9.4 /usr/local/bin/telegram-bot-api --repo ${{ github.repository }} --title v9.4
+        env:
+          GH_TOKEN: ${{ github.token }}
